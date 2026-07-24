@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>东京 8日 · 花火 + 富士</title>
+<title>东京 8日 · 中古淘宝 + 富士</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 :root{
@@ -32,6 +32,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro','
 .stop .tag.food{color:var(--orange);border-color:var(--orange)}.stop .tag.spot{color:var(--blue);border-color:var(--blue)}
 .stop .tag.hotel{color:var(--purple);border-color:var(--purple)}.stop .tag.transport{color:var(--grey);border-color:var(--grey)}
 .stop .tag.drink{color:var(--green);border-color:var(--green)}.stop .tag.jdm{color:var(--red);border-color:var(--red)}
+.stop .tag.shop{color:#ff9500;border-color:#ff9500}.stop .tag.temple{color:#af52de;border-color:#af52de}
 .summary{padding:16px;display:none}
 .summary.active{display:block}
 .summary .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -44,7 +45,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro','
 .summary .total{font-weight:700}
 .note{padding:12px;background:rgba(255,59,48,0.08);border:1px solid rgba(255,59,48,0.15);border-radius:8px;font-size:10px;color:var(--text2);line-height:1.5}
 .note strong{color:var(--red)}
-.nav-btn{position:absolute;top:10px;right:10px;z-index:1000;background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;font-family:inherit;display:none}
 .leaflet-popup-content{font-family:inherit;font-size:12px;margin:8px 12px;line-height:1.4}
 .leaflet-popup-content strong{display:block;margin-bottom:2px}
 .leaflet-popup-content span{color:#666;font-size:10px}
@@ -61,7 +61,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro','
 <div class="tabs" id="tabs">
 <button data-day="0" class="active">总览</button>
 <button data-day="1">D0 到达</button>
-<button data-day="2">D1 花火</button>
+<button data-day="2">D1 中古</button>
 <button data-day="3">D2 东线</button>
 <button data-day="4">D3 上野</button>
 <button data-day="5">D4 西线</button>
@@ -69,51 +69,53 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro','
 <button data-day="7">D6 富士</button>
 <button data-day="8">D7 返程</button>
 </div>
-
-<!-- Panel contents injected by JS -->
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const COLORS = {transport:'#86868b',food:'#ff9500',spot:'#007aff',hotel:'#af52de',drink:'#34c759',jdm:'#ff3b30',shop:'#007aff',pickup:'#ff9500'};
-const ICONS = {};
-Object.entries(COLORS).forEach(([t,c])=>{
-ICONS[t]=L.divIcon({html:`<div style="width:12px;height:12px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,0.3);box-shadow:0 0 6px ${c}44"></div>`,className:'',iconSize:[12,12],iconAnchor:[6,6]});
-});
+const COL={transport:'#86868b',food:'#ff9500',spot:'#007aff',hotel:'#af52de',drink:'#34c759',jdm:'#ff3b30',shop:'#ff9500',temple:'#af52de',pickup:'#ff9500',garden:'#34c759'};
+const IC={};
+Object.entries(COL).forEach(([t,c])=>{IC[t]=L.divIcon({html:`<div style="width:12px;height:12px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,0.3);box-shadow:0 0 6px ${c}44"></div>`,className:'',iconSize:[12,12],iconAnchor:[6,6]});});
 
-const hotel = {name:'FRESA INN 上野御徒町',lat:35.7085,lng:139.7740,type:'hotel'};
+const H={name:'FRESA INN 上野御徒町',lat:35.7085,lng:139.774};
 
-const DAYS = [
+const DAYS=[
 {id:0,label:'总览',color:'#0071e3',locs:[]},
 {id:1,label:'D0 到达',date:'8/2 周日',title:'落地东京',color:'#86868b',locs:[
-{n:'羽田机场 T2',t:'transport',ti:'19:45',d:'NH924 广州→羽田 · 14:15→19:45 · 托运2件×23kg',lat:35.552,lng:139.7799,b:'已购'},
-{n:'FRESA INN 上野御徒町',t:'hotel',ti:'21:00',d:'京急→品川→山手线 · 35分 ¥580',lat:35.7085,lng:139.774,b:'¥9,000/晚 ¥450'},
-{n:'阿美横町宵夜',t:'food',ti:'21:30',d:'肉的大山炸肉饼 ¥350 · 名代宇奈鳗鱼饭 ¥800',lat:35.71,lng:139.7745,b:'¥1,200/¥60'}
+{n:'羽田机场 T2',t:'transport',ti:'19:45',d:'NH924 广州→羽田 · 14:15→19:45 · 托运2件×23kg',lat:35.552,lng:139.78,b:'已购'},
+{n:'FRESA INN 上野御徒町',t:'hotel',ti:'21:00',d:'京急→品川→山手线 · 35分 ¥580',lat:35.7085,lng:139.774,b:'¥9,000'},
+{n:'阿美横町宵夜',t:'food',ti:'21:30',d:'肉的大山炸肉饼 ¥350 · 名代宇奈鳗鱼饭 ¥800',lat:35.71,lng:139.7745,b:'¥1,200'}
 ]},
-{id:2,label:'D1 花火',date:'8/3 周一',title:'长冈花火大会',color:'#ff3b30',locs:[
-{n:'上野站出发(MPV)',t:'transport',ti:'—',d:'拼车往返 · 单程3-4h · 回程凌晨',lat:35.7138,lng:139.7767},
-{n:'长冈花火大会会场',t:'spot',ti:'19:20',d:'日本三大花火 · 不死鸟烟火 · 19:20-21:10',lat:37.444,lng:138.85,b:'¥15,000/¥750'},
-{n:'MPV返回东京',t:'transport',ti:'凌晨',d:'拼车返回 · 凌晨到酒店',lat:35.7138,lng:139.7767}
+{id:2,label:'D1 中古',date:'8/3 周一',title:'川崎BOOKOFF + 中野Mandarake',color:'#ff9500',locs:[
+{n:'上野→川崎',t:'transport',ti:'09:00',d:'JR京滨东北线 25分 ¥310',lat:35.7138,lng:139.7767},
+{n:'BOOKOFF 川崎モアーズ',t:'shop',ti:'09:30',d:'川崎站直结3F · 综合大型中古 · 10:00-22:00',lat:35.531,lng:139.697},
+{n:'川崎大師 平間寺',t:'temple',ti:'10:45',d:'关东三大本山 · 除厄大师 · 仲见世通吃久寿饼 · 京急大师线5分 ¥150',lat:35.5339,lng:139.7295},
+{n:'BOOKOFF 409号川崎港町',t:'shop',ti:'11:30',d:'大師步行8分 · ヤマダ電機2F · ホビー/トレカ強 · 10:00-20:00',lat:35.533,lng:139.753},
+{n:'川崎午餐',t:'food',ti:'12:30',d:'川崎站周边',lat:35.531,lng:139.697,b:'¥1,200'},
+{n:'川崎→中野',t:'transport',ti:'13:30',d:'JR 35分 ¥500',lat:35.7094,lng:139.6658},
+{n:'中野 Broadway',t:'shop',ti:'14:10',d:'Mandarake本店+20+专门馆 · 漫画/玩具/同人/特摄/动画cel · 营业至20:00',lat:35.7094,lng:139.6658},
+{n:'中野→上野',t:'transport',ti:'17:30',d:'JR中央线 25分 ¥320',lat:35.7138,lng:139.7767},
+{n:'阿美横/上野晚餐',t:'food',ti:'18:00',d:'自由 · 早回为D2蓄力',lat:35.71,lng:139.7745,b:'¥1,500'}
 ]},
-{id:3,label:'D2 东线',date:'8/4 周二',title:'浅草+秋叶原+御茶水乐器',color:'#007aff',locs:[
+{id:3,label:'D2 东线',date:'8/4 周二',title:'浅草+秋叶原深度',color:'#007aff',locs:[
 {n:'浅草寺·雷门',t:'spot',ti:'08:45',d:'银座线5分 ¥180 · 雷门大灯笼 · 仲见世通',lat:35.7148,lng:139.7967},
 {n:'秋叶原电器街',t:'spot',ti:'10:30',d:'筑波快线5分 ¥200 · Yodobashi·Radio会馆',lat:35.7023,lng:139.7745},
-{n:'秋叶原午餐',t:'food',ti:'12:30',d:'咖喱/拉面',lat:35.702,lng:139.773,b:'¥1,200'},
-{n:'イシバシ楽器 御茶水本店',t:'shop',ti:'13:30',d:'日本最大中古吉他 · Fender/Gibson/Martin',lat:35.6981,lng:139.7644},
-{n:'下倉楽器 御茶水本店',t:'shop',ti:'14:15',d:'G7/Kanade/Psy日产手工琴 · 效果器品种全',lat:35.6978,lng:139.7648},
-{n:'クロサワ楽器 御茶水店',t:'shop',ti:'15:00',d:'Schecter日产线 · ESP · Boss/Strymon',lat:35.6975,lng:139.7652},
-{n:'Disk Union 御茶水',t:'shop',ti:'15:45',d:'日本最大独立唱片 · CD/黑胶',lat:35.697,lng:139.7658},
+{n:'Mandarake コンプレックス',t:'shop',ti:'12:00',d:'秋叶原旗舰 · 12:00-20:00',lat:35.7005,lng:139.771},
+{n:'駿河屋 秋葉原本館',t:'shop',ti:'13:00',d:'步行圈 · 本馆+駅前店+アニメ館 · 11:00-21:00',lat:35.700,lng:139.7705},
+{n:'秋叶原午餐',t:'food',ti:'14:30',d:'自由',lat:35.702,lng:139.773,b:'¥1,200'},
+{n:'秋叶原自由探索',t:'spot',ti:'15:30',d:'Radio会馆·Yodobashi·手办·同人',lat:35.7023,lng:139.7745},
 {n:'晚餐 肉の万世',t:'food',ti:'18:00',d:'和牛汉堡/牛排',lat:35.702,lng:139.773,b:'¥1,800'},
-{n:'Taito HEY 秋叶原',t:'spot',ti:'19:00',d:'格斗游戏圣地 · 营业至23:00',lat:35.7005,lng:139.771}
+{n:'Taito HEY',t:'spot',ti:'19:00',d:'格斗游戏圣地 · 营业至23:00',lat:35.7005,lng:139.771}
 ]},
-{id:4,label:'D3 上野',date:'8/5 周三',title:'上野深度+大黑PA',color:'#ff9500',locs:[
+{id:4,label:'D3 上野',date:'8/5 周三',title:'上野+御茶水乐器+大黑PA',color:'#ff9500',locs:[
 {n:'国立博物馆',t:'spot',ti:'09:10',d:'本馆+平成馆+法隆寺宝物馆',lat:35.719,lng:139.776,b:'¥1,000'},
-{n:'上野东照宫',t:'spot',ti:'12:00',d:'德川家康灵庙 · 200盏石灯笼',lat:35.7147,lng:139.7712,b:'¥500'},
-{n:'不忍池+弁天堂',t:'spot',ti:'12:50',d:'8月荷花全盛 · 池中朱红佛堂',lat:35.7125,lng:139.7705},
-{n:'午餐',t:'food',ti:'13:15',d:'上野站周边',lat:35.709,lng:139.775,b:'¥1,200'},
-{n:'谷中银座',t:'spot',ti:'14:30',d:'昭和商店街 · 猫主题 · 夕阳台阶',lat:35.726,lng:139.767},
-{n:'根津神社',t:'spot',ti:'15:30',d:'东京十社 · 千本鸟居隧道',lat:35.72,lng:139.7605},
-{n:'一頭や 烧肉',t:'food',ti:'18:00',d:'黑毛和牛',lat:35.709,lng:139.775,b:'¥3,000'},
+{n:'上野东照宫',t:'spot',ti:'11:30',d:'德川家康灵庙 · 200盏石灯笼',lat:35.7147,lng:139.7712,b:'¥500'},
+{n:'不忍池+弁天堂',t:'spot',ti:'12:15',d:'8月荷花全盛',lat:35.7125,lng:139.7705},
+{n:'午餐',t:'food',ti:'13:00',d:'上野站周边',lat:35.709,lng:139.775,b:'¥1,200'},
+{n:'谷中银座',t:'spot',ti:'14:00',d:'昭和商店街 · 猫主题 · 夕阳台阶',lat:35.726,lng:139.767},
+{n:'根津神社',t:'spot',ti:'15:00',d:'千本鸟居隧道',lat:35.72,lng:139.7605},
+{n:'御茶水乐器街',t:'shop',ti:'16:00',d:'上野→御茶水 山手线3分 ¥140 · イシバシ→下倉→クロサワ→Disk Union',lat:35.6981,lng:139.7644},
+{n:'一頭や 烧肉',t:'food',ti:'18:30',d:'黑毛和牛',lat:35.709,lng:139.775,b:'¥3,000'},
 {n:'大黑PA',t:'jdm',ti:'21:00',d:'JDM圣地 · 湾岸夜景+聚车',lat:35.463,lng:139.675}
 ]},
 {id:5,label:'D4 西线',date:'8/6 周四',title:'下北泽+涩谷+代官山+歌舞伎町',color:'#34c759',locs:[
@@ -145,155 +147,68 @@ const DAYS = [
 {n:'东京塔夜景',t:'spot',ti:'21:00',d:'Main Deck · 最后入场23:00',lat:35.6586,lng:139.7454,b:'¥1,200'}
 ]},
 {id:8,label:'D7 返程',date:'8/9 周日',title:'返程',color:'#86868b',locs:[
-{n:'羽田机场 T2',t:'transport',ti:'09:15',d:'NH923 羽田→广州 · 06:00起床 · Bass超大托运',lat:35.552,lng:139.7799,b:'已购'}
+{n:'羽田机场 T2',t:'transport',ti:'09:15',d:'NH923 羽田→广州 · 06:00起床 · Bass超大托运',lat:35.552,lng:139.78,b:'已购'}
 ]}
 ];
 
-const map = L.map('map',{zoomControl:false}).setView([35.68,139.76],11);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://carto.com/">CARTO</a>',maxZoom:19}).addTo(map);
+const map=L.map('map',{zoomControl:false}).setView([35.65,139.74],10);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; CARTO',maxZoom:19}).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
 
-const markers = {};
-const markerGroup = L.layerGroup().addTo(map);
-const routeGroup = L.layerGroup().addTo(map);
+const MK={},MG=L.layerGroup().addTo(map),RG=L.layerGroup().addTo(map);
+const AL=DAYS.slice(1);
 
-// Build markers for all days
-const allDays = DAYS.slice(1);
-allDays.forEach(day => {
-day.markers = [];
-day.locs.forEach((loc,i) => {
-const m = L.marker([loc.lat,loc.lng],{icon:ICONS[loc.t]||ICONS.spot}).bindPopup(`<strong>${loc.n}</strong><span>${loc.ti||''} · ${day.label}</span><br>${loc.d||''}`);
-markers[`${day.id}_${i}`] = m;
-day.markers.push(m);
-});
-});
+AL.forEach(d=>{d.markers=[];d.locs.forEach((l,i)=>{const m=L.marker([l.lat,l.lng],{icon:IC[l.t]||IC.spot}).bindPopup(`<strong>${l.n}</strong><span>${l.ti||''} · ${d.label}</span><br>${l.d||''}`);MK[`${d.id}_${i}`]=m;d.markers.push(m);});});
 
-// Hotel marker (always visible)
-const hotelM = L.marker([hotel.lat,hotel.lng],{icon:L.divIcon({html:'<div style="width:16px;height:16px;border-radius:50%;background:#af52de;border:3px solid rgba(255,255,255,0.5);box-shadow:0 0 10px #af52de88"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]})}).bindPopup('<strong>FRESA INN 上野御徒町</strong><br>¥9,000/晚').addTo(map);
+const HM=L.marker([H.lat,H.lng],{icon:L.divIcon({html:'<div style="width:16px;height:16px;border-radius:50%;background:#af52de;border:3px solid rgba(255,255,255,0.5);box-shadow:0 0 10px #af52de88"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]})}).bindPopup('<strong>FRESA INN 上野御徒町</strong><br>¥9,000/晚').addTo(map);
 
-// Show day's markers
-function showDay(dayId){
-markerGroup.clearLayers();
-routeGroup.clearLayers();
-if(dayId===0){
-allDays.forEach(d=>d.markers.forEach(m=>markerGroup.addLayer(m)));
-const allLocs = allDays.flatMap(d=>d.locs);
-allLocs.forEach((loc,i,arr)=>{
-if(i>0&&arr[i-1].lat&&loc.lat){
-L.polyline([[arr[i-1].lat,arr[i-1].lng],[loc.lat,loc.lng]],{color:COLORS[loc.t]||'#888',weight:1,opacity:0.3,dashArray:'4 4'}).addTo(routeGroup);
-}
-});
-try{map.fitBounds(L.latLngBounds(allLocs.map(l=>[l.lat,l.lng])).pad(0.1));}catch(e){}
+function showDay(id){
+MG.clearLayers();RG.clearLayers();
+if(id===0){
+AL.forEach(d=>d.markers.forEach(m=>MG.addLayer(m)));
+const all=AL.flatMap(d=>d.locs);
+try{map.fitBounds(L.latLngBounds(all.map(l=>[l.lat,l.lng])).pad(0.1));}catch(e){}
 }else{
-const day = DAYS[dayId];
-day.markers.forEach(m=>markerGroup.addLayer(m));
-day.locs.forEach((loc,i)=>{
-if(i>0&&day.locs[i-1].lat&&loc.lat){
-L.polyline([[day.locs[i-1].lat,day.locs[i-1].lng],[loc.lat,loc.lng]],{color:day.color,weight:2,opacity:0.7}).addTo(routeGroup);
-}
-});
-try{map.fitBounds(L.latLngBounds(day.locs.map(l=>[l.lat,l.lng])).pad(0.15));}catch(e){}
+const d=DAYS[id];d.markers.forEach(m=>MG.addLayer(m));
+d.locs.forEach((l,i)=>{if(i>0&&d.locs[i-1].lat&&l.lat)L.polyline([[d.locs[i-1].lat,d.locs[i-1].lng],[l.lat,l.lng]],{color:d.color,weight:2,opacity:0.7}).addTo(RG);});
+try{map.fitBounds(L.latLngBounds(d.locs.map(l=>[l.lat,l.lng])).pad(0.15));}catch(e){}
 }
 }
 
-// Build panels
-const panel = document.getElementById('panel');
-const tabsContainer = document.getElementById('tabs');
-
-// Summary panel
-const summaryDiv = document.createElement('div');
-summaryDiv.className = 'summary active';
-summaryDiv.id = 'summary-panel';
-summaryDiv.innerHTML = `
-<div style="text-align:center;padding:8px 0 4px"><h2 style="font-size:18px">东京 8日 · 花火 + 富士</h2><p style="font-size:11px;color:var(--text2)">8/2—8/9 · 2人行 · 花火 · 乐器 · JDM · 富士</p></div>
+const panel=document.getElementById('panel'),tc=document.getElementById('tabs');
+const sd=document.createElement('div');sd.className='summary active';sd.id='sp';
+sd.innerHTML=`<div style="text-align:center;padding:8px 0 4px"><h2 style="font-size:18px">东京 8日 · 中古淘宝 + 富士</h2><p style="font-size:11px;color:var(--text2)">8/2—8/9 · 2人行 · 中古淘宝 · 乐器 · JDM · 富士</p></div>
 <div class="info-grid">
-<div class="info-card"><div class="lbl">酒店</div><div class="val">FRESA INN 上野御徒町<br><span style="font-size:10px;color:var(--text2)">¥9,000/晚 ×6晚 + 河口湖1晚 ¥12,000</span></div></div>
+<div class="info-card"><div class="lbl">酒店</div><div class="val">FRESA INN 上野御徒町<br><span style="font-size:10px;color:var(--text2)">¥9,000/晚×6 + 河口湖1晚 ¥12,000</span></div></div>
 <div class="info-card"><div class="lbl">航班</div><div class="val">NH924 CAN→HND 8/2 14:15→19:45<br>NH923 HND→CAN 8/9 09:15→13:05<br><span style="font-size:10px;color:var(--text2)">经济舱 ¥3,650/人</span></div></div>
-<div class="info-card"><div class="lbl">行李</div><div class="val">2件×23kg/人 · Bass托运<br><span style="font-size:10px;color:var(--text2)">提前确认ANA超大件</span></div></div>
-<div class="info-card"><div class="lbl">预估/人</div><div class="val">约 ¥109,960 (¥5,498)<br><span style="font-size:10px;color:var(--text2)">含住宿·交通·门票·餐饮</span></div></div>
+<div class="info-card"><div class="lbl">行李</div><div class="val">2件×23kg · Bass托运<br><span style="font-size:10px;color:var(--text2)">提前确认ANA超大件</span></div></div>
+<div class="info-card"><div class="lbl">预估/人</div><div class="val">约 ¥110,000 (¥5,500)<br><span style="font-size:10px;color:var(--text2)">含住·交通·门票·餐饮</span></div></div>
 </div>
 <h4 style="font-size:13px;margin-bottom:6px">预算明细</h4>
 <table>
 <tr><td>住宿 东京6晚</td><td style="text-align:right">¥27,000 / ¥1,350</td></tr>
 <tr><td>住宿 河口湖1晚</td><td style="text-align:right">¥12,000 / ¥600</td></tr>
 <tr><td>交通</td><td style="text-align:right">¥17,960 / ¥898</td></tr>
-<tr><td>花火门票(二手)</td><td style="text-align:right">¥15,000 / ¥750</td></tr>
 <tr><td>景点门票</td><td style="text-align:right">¥9,100 / ¥455</td></tr>
 <tr><td>餐饮(8天)</td><td style="text-align:right">¥18,900 / ¥945</td></tr>
 <tr><td>大黑PA包车</td><td style="text-align:right">¥10,000 / ¥500</td></tr>
 <tr class="total"><td><strong>合计</strong></td><td style="text-align:right"><strong>¥109,960 / ¥5,498</strong></td></tr>
 </table>
-<div class="note">
-<strong>待定</strong><br>
-· D1花火 — 可能替换为东京市内活动<br>
-· 酒店 — 可能从FRESA INN升级<br>
-· 神户牛 — SATO Briand / もとやま / 29テラス / EBISU84<br>
-· 花火票 — 海外抽签结束,走国内二手 · Bass托运提前确认ANA
-</div>
-`;
-panel.appendChild(summaryDiv);
+<div class="note"><strong>待定</strong><br>· 酒店 — 可能从FRESA INN升级 · 神户牛 — SATO Briand / もとやま / 29テラス / EBISU84 · Bass托运 — 提前确认ANA · 汇率 1CNY≈20JPY</div>`;
+panel.appendChild(sd);
 
-// Day panels
-DAYS.slice(1).forEach(day => {
-const div = document.createElement('div');
-div.className = 'day-content';
-div.id = `day-panel-${day.id}`;
-let stops = day.locs.map((loc,i) => `
-<div class="stop" data-day="${day.id}" data-idx="${i}">
-<span class="time">${loc.ti||'—'}</span>
-<div class="info">
-<div class="name">${loc.n}</div>
-<div class="desc">${loc.d||''}</div>
-${loc.b?`<div style="font-size:10px;color:var(--text2);margin-top:1px">${loc.b}</div>`:''}
-</div>
-<span class="tag ${loc.t}">${loc.t==='food'?'餐':loc.t==='spot'?'景点':loc.t==='hotel'?'酒店':loc.t==='transport'?'交通':loc.t==='drink'?'酒吧':loc.t==='jdm'?'JDM':loc.t==='shop'?'乐器':loc.t==='pickup'?'取件':loc.t}</span>
-</div>
-`).join('');
-div.innerHTML = `<div class="day-header"><h3>${day.title}</h3><span class="date">${day.date}</span></div>${stops}`;
-panel.appendChild(div);
+AL.forEach(d=>{
+const dv=document.createElement('div');dv.className='day-content';dv.id=`dp-${d.id}`;
+dv.innerHTML=`<div class="day-header"><h3>${d.title}</h3><span class="date">${d.date}</span></div>${d.locs.map((l,i)=>`<div class="stop" data-day="${d.id}" data-idx="${i}"><span class="time">${l.ti||'—'}</span><div class="info"><div class="name">${l.n}</div><div class="desc">${l.d||''}</div>${l.b?`<div style="font-size:10px;color:var(--text2)">${l.b}</div>`:''}</div><span class="tag ${l.t}">${l.t==='food'?'餐':l.t==='spot'?'景点':l.t==='hotel'?'酒店':l.t==='transport'?'交通':l.t==='drink'?'酒吧':l.t==='jdm'?'JDM':l.t==='shop'?'淘宝':l.t==='temple'?'寺庙':l.t==='garden'?'庭园':l.t==='pickup'?'取件':l.t}</span></div>`).join('')}`;
+panel.appendChild(dv);
 });
 
-// Tab switching
-let activeDay = 0;
-showDay(0);
-
-tabsContainer.addEventListener('click', e => {
-if(e.target.tagName==='BUTTON'){
-const dayId = parseInt(e.target.dataset.day);
-activeDay = dayId;
-tabsContainer.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
-e.target.classList.add('active');
-panel.querySelectorAll('.day-content,.summary').forEach(d=>d.classList.remove('active'));
-if(dayId===0)document.getElementById('summary-panel').classList.add('active');
-else{
-const dp = document.getElementById(`day-panel-${dayId}`);
-if(dp)dp.classList.add('active');
-}
-showDay(dayId);
-}
+let ad=0;showDay(0);
+tc.addEventListener('click',e=>{
+if(e.target.tagName==='BUTTON'){ad=+e.target.dataset.day;tc.querySelectorAll('button').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');panel.querySelectorAll('.day-content,.summary').forEach(d=>d.classList.remove('active'));if(ad===0)document.getElementById('sp').classList.add('active');else{const dp=document.getElementById(`dp-${ad}`);if(dp)dp.classList.add('active')}showDay(ad);}
 });
-
-// Click on stop to focus map
-panel.addEventListener('click', e => {
-const stop = e.target.closest('.stop');
-if(stop){
-const dayId = parseInt(stop.dataset.day);
-const idx = parseInt(stop.dataset.idx);
-const key = `${dayId}_${idx}`;
-const m = markers[key];
-if(m){
-map.setView(m.getLatLng(),16);
-m.openPopup();
-}
-}
-});
-
-// Tip
-const tip = document.getElementById('tip');
-tip.classList.add('show');
-setTimeout(()=>tip.classList.remove('show'),5000);
-
-// Responsive: tap map to hide tip
+panel.addEventListener('click',e=>{const s=e.target.closest('.stop');if(s){const m=MK[`${s.dataset.day}_${s.dataset.idx}`];if(m){map.setView(m.getLatLng(),16);m.openPopup();}}});
+const tip=document.getElementById('tip');tip.classList.add('show');setTimeout(()=>tip.classList.remove('show'),5000);
 map.on('click',()=>tip.classList.remove('show'));
 </script>
 </body>
